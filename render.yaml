@@ -7,7 +7,12 @@ services:
     autoDeployTrigger: commit
     healthCheckPath: /v3/api-docs
     envVars:
-      # Motor de base de datos: la app usa MySQL por defecto (db.vendor=${DB_VENDOR:mysql}).
+      # Motor de base de datos. TiDB Serverless es compatible con MySQL: este valor
+      # es obligatorio declararlo aqui porque si no, Render conservaria el
+      # DB_VENDOR=postgresql del blueprint anterior (Supabase) y la app fallaria
+      # al iniciar con "An error occurred while setting up the SSL connection".
+      - key: DB_VENDOR
+        value: mysql
       - key: DB_HOST
         sync: false
       - key: DB_PORT
