@@ -8,6 +8,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -106,6 +107,22 @@ class BrevoEmailSenderAdapterTest {
                 assertThrows(EmailSenderException.class, () -> adapter.send(destination()));
 
         assertTrue(openCircuit.getMessage().contains("circuit breaker abierto"));
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("convierte un error de conexion (ResourceAccessException) en EmailSenderException")
+    void shouldWrapResourceAccessException() {
+        server
+                .expect(once(), requestTo("https://api.brevo.test/v3/smtp/email"))
+                .andRespond(withException(new java.io.IOException("connection refused")));
+
+        final EmailSenderException exception =
+                assertThrows(
+                        EmailSenderException.class,
+                        () -> adapter(defaultConfig(1, 5)).send(destination()));
+
+        assertTrue(exception.getMessage().contains("ResourceAccessException"));
         server.verify();
     }
 

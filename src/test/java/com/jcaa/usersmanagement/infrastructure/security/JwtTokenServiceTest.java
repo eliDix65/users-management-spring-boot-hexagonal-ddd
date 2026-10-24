@@ -16,6 +16,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Base64;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class JwtTokenServiceTest {
@@ -70,6 +71,22 @@ class JwtTokenServiceTest {
 
     // Assert
     assertThat(exception).isNotNull();
+  }
+
+  @Test
+  @DisplayName("el constructor público (reloj del sistema) genera y parsea tokens válidos")
+  void shouldGenerateAndParseWithPublicConstructor() {
+    // Arrange
+    final JwtTokenService service = new JwtTokenService(new JwtProperties(SECRET, EXPIRATION_SECONDS));
+
+    // Act
+    final String token = service.generate(activeUser());
+    final JwtPrincipal principal = service.parse(token);
+
+    // Assert
+    assertThat(principal.userId()).isEqualTo("user-001");
+    assertThat(principal.role()).isEqualTo(UserRole.ADMIN);
+    assertThat(service.expirationSeconds()).isEqualTo(EXPIRATION_SECONDS);
   }
 
   private static JwtTokenService serviceAt(final Instant instant) {

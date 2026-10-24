@@ -97,4 +97,55 @@ class DatabaseConfigTest {
     assertThat(disabled.buildJdbcUrl()).endsWith("?sslmode=disable");
     assertThat(verifyFull.buildJdbcUrl()).endsWith("?sslmode=verify-full");
   }
+
+  @Test
+  @DisplayName("buildJdbcUrl() usa MySQL cuando el vendedor es null o vacío")
+  void shouldDefaultToMySqlWhenVendorIsNullOrBlank() {
+    // Arrange
+    final DatabaseConfig nullVendor =
+        new DatabaseConfig(HOST, PORT, DATABASE, USERNAME, PASSWORD, SSL_MODE, null);
+    final DatabaseConfig blankVendor =
+        new DatabaseConfig(HOST, PORT, DATABASE, USERNAME, PASSWORD, SSL_MODE, "   ");
+
+    // Act + Assert
+    assertThat(nullVendor.buildJdbcUrl()).startsWith("jdbc:mysql://");
+    assertThat(blankVendor.buildJdbcUrl()).startsWith("jdbc:mysql://");
+    assertThat(nullVendor.driverClassName()).isEqualTo("com.mysql.cj.jdbc.Driver");
+    assertThat(blankVendor.driverClassName()).isEqualTo("com.mysql.cj.jdbc.Driver");
+  }
+
+  @Test
+  @DisplayName("buildJdbcUrl() usa sslmode=disable cuando PostgreSQL no recibe modo SSL")
+  void shouldDefaultToDisableSslForPostgreSqlWhenSslModeIsBlank() {
+    // Arrange
+    final DatabaseConfig nullSslMode =
+        new DatabaseConfig(HOST, PORT, DATABASE, USERNAME, PASSWORD, null, "PostgreSQL");
+    final DatabaseConfig blankSslMode =
+        new DatabaseConfig(HOST, PORT, DATABASE, USERNAME, PASSWORD, "  ", "PostgreSQL");
+
+    // Act + Assert
+    assertThat(nullSslMode.buildJdbcUrl()).endsWith("?sslmode=disable");
+    assertThat(blankSslMode.buildJdbcUrl()).endsWith("?sslmode=disable");
+  }
+
+  @Test
+  @DisplayName("buildJdbcUrl() traduce el resto de modos SSL de PostgreSQL")
+  void shouldTranslateRemainingSslModesForPostgreSql() {
+    // Arrange
+    final DatabaseConfig disable =
+        new DatabaseConfig(
+            HOST, PORT, DATABASE, USERNAME, PASSWORD, "DISABLE", DatabaseConfig.VENDOR_POSTGRESQL);
+    final DatabaseConfig verifyCa =
+        new DatabaseConfig(
+            HOST, PORT, DATABASE, USERNAME, PASSWORD, "VERIFY_CA", DatabaseConfig.VENDOR_POSTGRESQL);
+    final DatabaseConfig unknown =
+        new DatabaseConfig(
+            HOST, PORT, DATABASE, USERNAME, PASSWORD, "SOMETHING_ELSE",
+            DatabaseConfig.VENDOR_POSTGRESQL);
+
+    // Act + Assert
+    assertThat(disable.buildJdbcUrl()).endsWith("?sslmode=disable");
+    assertThat(verifyCa.buildJdbcUrl()).endsWith("?sslmode=verify-ca");
+    assertThat(unknown.buildJdbcUrl()).endsWith("?sslmode=require");
+  }
 }

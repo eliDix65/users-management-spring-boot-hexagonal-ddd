@@ -127,4 +127,20 @@ class UserPasswordTest {
     assertEquals(a, b);
     assertEquals(a.hashCode(), b.hashCode());
   }
+
+  @Test
+  @DisplayName("fromHash: lanza NullPointerException cuando el hash es null")
+  void shouldThrowWhenHashIsNull() {
+    // Arrange & Act & Assert
+    assertThrows(NullPointerException.class, () -> UserPassword.fromHash(null));
+  }
+
+  @Test
+  @DisplayName("verifyPlain: lanza NullPointerException cuando el texto plano es null")
+  void shouldThrowWhenVerifyingNullPlainText() {
+    // Arrange
+    final UserPassword password = UserPassword.fromPlainText("MiPassword123");
+    // Act & Assert
+    assertThrows(NullPointerException.class, () -> password.verifyPlain(null));
+  }
 }
