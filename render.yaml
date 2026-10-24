@@ -7,29 +7,36 @@ services:
     autoDeployTrigger: commit
     healthCheckPath: /v3/api-docs
     envVars:
-      # Motor de base de datos: la app usa MySQL por defecto (db.vendor=${DB_VENDOR:mysql}).
+      # Motor de base de datos. Cambiar a "mysql" para desplegar sobre MySQL.
+      - key: DB_VENDOR
+        value: postgresql
       - key: DB_HOST
         sync: false
       - key: DB_PORT
         sync: false
       - key: DB_NAME
-        value: crud_usuarios
+        value: postgres
       - key: DB_USERNAME
         sync: false
       - key: DB_PASSWORD
         sync: false
-      # TiDB exige TLS y el proyecto soporta VERIFY_IDENTITY (certificado validado).
+      # PostgreSQL exige SSL en Supabase; el valor se traduce a sslmode=require.
       - key: DB_SSL_MODE
+        value: REQUIRED
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      # Render bloquea el 587 saliente; el 465 usa TLS implicito sobre el mismo puerto abierto.
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USERNAME
         sync: false
-      # Clave API REST de Brevo. Render bloquea los puertos SMTP salientes (25/587/465),
-      # por eso el envio se hace contra https://api.brevo.com (HTTPS 443).
-      - key: BREVO_API_KEY
+      - key: SMTP_PASSWORD
         sync: false
-      - key: BREVO_FROM_ADDRESS
+      - key: SMTP_FROM_ADDRESS
         sync: false
-      - key: BREVO_FROM_NAME
+      - key: SMTP_FROM_NAME
         value: Gestion de Usuarios
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION_SECONDS
-        sync: false
+        value: "900"
